@@ -25,3 +25,6 @@ __pycache__/
 # OS-generated files
 .DS_Store
 Thumbs.db
+
+# Python package build files
+*.egg-info/
