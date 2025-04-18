@@ -4,9 +4,34 @@ from folium import plugins
 from streamlit_folium import st_folium
 from backend import sourcing  # import your backend logic
 import pandas as pd
+
+import base64
 import os
 
+def get_base64(path):
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+# Path to the local image
+image_path = os.path.join("app", "static", "background.jpg")
+img_base64 = get_base64(image_path)
+
 st.set_page_config(page_title="Espeeria Search", layout="wide")
+
+# Inject it as background
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-image: url("data:image/jpg;base64,{img_base64}");
+        background-size: cover;
+        background-attachment: fixed;
+        background-position: center;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # --- Main section ---
 st.title("🧭 Espeeria Supplier Finder")
@@ -23,84 +48,33 @@ initial_lat = 43.296482
 initial_lon = 5.369780
 zoom_start = 12
 
-# Create custom icon
-icon_path = os.path.join('app', 'static', 'marker.png')
-if os.path.exists(icon_path):
-    custom_icon = folium.CustomIcon(
-        icon_image=icon_path,
-        icon_size=(30, 30),  # Adjust size as needed
-        icon_anchor=(15, 15)  # Center the icon on the point
-    )
-else:
-    custom_icon = None
+# Create the map using folium
+m = folium.Map(location=[initial_lat, initial_lon], zoom_start=zoom_start)
 
-# Initialize session state for location and zoom if not already set
-if 'current_lat' not in st.session_state:
-    st.session_state.current_lat = initial_lat
-    st.session_state.current_lon = initial_lon
-    st.session_state.zoom_level = zoom_start
-
-# Get the search radius from the slider
-radius_km = st.sidebar.slider("Search Radius (km)", 1, 20, 5)
-
-# Create the map with current location and zoom level
-m = folium.Map(
-    location=[st.session_state.current_lat, st.session_state.current_lon],
-    zoom_start=st.session_state.zoom_level,
-    zoom_control=False  # Disable zoom controls
-)
-
-# Add the marker with custom icon
-if custom_icon:
-    marker = folium.Marker(
-        [st.session_state.current_lat, st.session_state.current_lon],
-        draggable=False,  # Marker is not draggable
-        icon=custom_icon
-    )
-else:
-    marker = folium.Marker(
-        [st.session_state.current_lat, st.session_state.current_lon],
-        draggable=False  # Marker is not draggable
-    )
+# Add a draggable marker to the map
+marker = folium.Marker([initial_lat, initial_lon], draggable=False)
 marker.add_to(m)
 
-# Add a circle to represent the search radius
-radius_meters = radius_km * 1000
-folium.Circle(
-    location=[st.session_state.current_lat, st.session_state.current_lon],
-    radius=radius_meters,
-    color='#3186cc',
-    fill=True,
-    fill_color='#3186cc',
-    fill_opacity=0.2,
-    popup=f'Search radius: {radius_km} km'
-).add_to(m)
-
-# Render the map in the sidebar
+# Use st_folium to render the folium map in Streamlit sidebar
 with st.sidebar:
     st.write("Select your destination on the map:")
-    output = st_folium(
-        m,
-        width=300,
-        height=300,
-        returned_objects=[],
-        key="map"  # Add a key to prevent map from resetting
-    )
+    output = st_folium(m, width=300, height=300)
 
-# Update location if map was clicked
+# Get the current marker position
 if output is not None and 'last_clicked' in output and output['last_clicked'] is not None:
-    st.session_state.current_lat = output['last_clicked']['lat']
-    st.session_state.current_lon = output['last_clicked']['lng']
-    # Preserve the zoom level
-    st.session_state.zoom_level = output.get('zoom', st.session_state.zoom_level)
-    # Force a rerun to update the map
-    st.experimental_rerun()
+    current_lat = output['last_clicked']['lat']
+    current_lon = output['last_clicked']['lng']
+else:
+    current_lat = initial_lat
+    current_lon = initial_lon
 
 # Get the location name
-location = sourcing.get_location_name(st.session_state.current_lat, st.session_state.current_lon)
+location = sourcing.get_location_name(current_lat, current_lon)
 
 # Display the current location
 st.sidebar.write(f"Selected Location: {location}")
+
+radius_km = st.sidebar.slider("Search Radius (km)", 1, 20, 5)
 
 supplier_types = st.sidebar.multiselect(
     "Types to include",
