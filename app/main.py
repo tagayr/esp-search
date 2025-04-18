@@ -38,6 +38,17 @@ if not supplier_types:
     st.sidebar.info("Select supplier types to set specific price limits")
 
 
+# --- Main section ---
+st.title("🧭 Espeeria Supplier Finder")
+st.markdown(
+    "Use the sidebar to search for hotels, restaurants, activities and transport "
+    "options around your selected destination."
+)
+
+# Create a container for search results
+results_container = st.container()
+
+# Search button in sidebar
 if st.sidebar.button("Search"):
     with st.spinner("Sourcing suppliers..."):
         # This is where your backend sourcing logic would be called
@@ -48,18 +59,13 @@ if st.sidebar.button("Search"):
             min_rating=min_google_rating,
             max_price=max_prices
         )
-
-        if suppliers:
-            df = pd.DataFrame(suppliers)
-            st.success(f"Found {len(df)} suppliers!")
-            st.dataframe(df)
-        else:
-            st.warning("No results found for the given criteria.")
-
-# --- Main section ---
-st.title("🧭 Espeeria Supplier Finder")
-st.markdown(
-    "Use the sidebar to search for hotels, restaurants, activities and transport "
-    "options around your selected destination. Results are based on live API data."
-)
+        
+        # Display results in the container below the title and description
+        with results_container:
+            if suppliers:
+                df = pd.DataFrame(suppliers)
+                st.success(f"Found {len(df)} suppliers!")
+                st.dataframe(df)
+            else:
+                st.warning("No results found for the given criteria.")
 
