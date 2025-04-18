@@ -34,28 +34,33 @@ if os.path.exists(icon_path):
 else:
     custom_icon = None
 
-# Initialize session state for location if not already set
+# Initialize session state for location and zoom if not already set
 if 'current_lat' not in st.session_state:
     st.session_state.current_lat = initial_lat
     st.session_state.current_lon = initial_lon
+    st.session_state.zoom_level = zoom_start
 
 # Get the search radius from the slider
 radius_km = st.sidebar.slider("Search Radius (km)", 1, 20, 5)
 
-# Create the map with current location
-m = folium.Map(location=[st.session_state.current_lat, st.session_state.current_lon], zoom_start=zoom_start)
+# Create the map with current location and zoom level
+m = folium.Map(
+    location=[st.session_state.current_lat, st.session_state.current_lon],
+    zoom_start=st.session_state.zoom_level,
+    zoom_control=False  # Disable zoom controls
+)
 
 # Add the marker with custom icon
 if custom_icon:
     marker = folium.Marker(
         [st.session_state.current_lat, st.session_state.current_lon],
-        draggable=True,
+        draggable=False,  # Marker is not draggable
         icon=custom_icon
     )
 else:
     marker = folium.Marker(
         [st.session_state.current_lat, st.session_state.current_lon],
-        draggable=True
+        draggable=False  # Marker is not draggable
     )
 marker.add_to(m)
 
@@ -74,18 +79,14 @@ folium.Circle(
 # Render the map in the sidebar
 with st.sidebar:
     st.write("Select your destination on the map:")
-    output = st_folium(m, width=300, height=300)
+    output = st_folium(m, width=300, height=300, returned_objects=[])
 
-# Update location if map was interacted with
-if output is not None:
-    # Check for marker drag (last_object_clicked)
-    if 'last_object_clicked' in output and output['last_object_clicked'] is not None:
-        st.session_state.current_lat = output['last_object_clicked']['lat']
-        st.session_state.current_lon = output['last_object_clicked']['lng']
-    # Check for map click (last_clicked)
-    elif 'last_clicked' in output and output['last_clicked'] is not None:
-        st.session_state.current_lat = output['last_clicked']['lat']
-        st.session_state.current_lon = output['last_clicked']['lng']
+# Update location if map was clicked
+if output is not None and 'last_clicked' in output and output['last_clicked'] is not None:
+    st.session_state.current_lat = output['last_clicked']['lat']
+    st.session_state.current_lon = output['last_clicked']['lng']
+    # Preserve the zoom level
+    st.session_state.zoom_level = output.get('zoom', st.session_state.zoom_level)
 
 # Get the location name
 location = sourcing.get_location_name(st.session_state.current_lat, st.session_state.current_lon)
