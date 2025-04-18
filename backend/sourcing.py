@@ -38,7 +38,7 @@ def get_location_name(lat, lon):
         print(f"Error getting location name: {str(e)}")
         return f"{lat:.4f}, {lon:.4f}"
 
-def get_coordinates(location):
+def get_coordinates_nominatim(location):
     """
     Get coordinates from a location name using OpenStreetMap's Nominatim service.
     
@@ -60,6 +60,19 @@ def get_coordinates(location):
     except Exception as e:
         print(f"Error getting coordinates: {str(e)}")
         return None
+
+def get_coordinates(lat, lon):
+    """
+    Get coordinates from the user's map selection.
+    
+    Args:
+        lat (float): Latitude from map selection
+        lon (float): Longitude from map selection
+        
+    Returns:
+        tuple: (latitude, longitude)
+    """
+    return lat, lon
 
 def fetch_suppliers_dummy(location, radius_km, types, min_rating, max_price):
     """
@@ -94,7 +107,8 @@ def fetch_suppliers_dummy(location, radius_km, types, min_rating, max_price):
 # - Cons: Requires API key and has usage costs
 # Example implementation:
 
-def fetch_suppliers(location, radius_km, types, min_rating, max_price):
+# def fetch_suppliers(location, radius_km, types, min_rating, max_price):
+def fetch_suppliers(lat, lon, radius_km, types, min_rating, max_price):
     """
     Fetches suppliers using Google Maps Places API.
     Requires a Google Cloud Platform account and API key.
@@ -121,7 +135,8 @@ def fetch_suppliers(location, radius_km, types, min_rating, max_price):
         for place_type in type_mapping[supplier_type]:
             url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
             params = {
-                "location": get_coordinates(location),  # You'd need to implement this
+                # "location": get_coordinates(location),  # You'd need to implement this
+                "location": get_coordinates(lat, lon),
                 "radius": radius_km * 1000,  # Convert to meters
                 "type": place_type,
                 "minprice": 0,
@@ -146,7 +161,8 @@ def fetch_suppliers(location, radius_km, types, min_rating, max_price):
                                 "Type": supplier_type,
                                 "Price (€)": estimated_price,
                                 "Rating": place["rating"],
-                                "Location": location,
+                                # "Location": location, # This needs to be changed to the location returned by GMaps
+                                "Location": place.get("location"),
                                 "Website": place.get("website", "")
                             })
     return results
