@@ -7,6 +7,13 @@ import pandas as pd
 
 st.set_page_config(page_title="Espeeria Search", layout="wide")
 
+# --- Main section ---
+st.title("🧭 Espeeria Supplier Finder")
+st.markdown(
+    "Use the sidebar to search for hotels, restaurants, activities and transport "
+    "options around your selected destination."
+)
+
 # --- Sidebar filters ---
 st.sidebar.header("Search Settings")
 
@@ -22,11 +29,13 @@ m = folium.Map(location=[initial_lat, initial_lon], zoom_start=zoom_start)
 marker = folium.Marker([initial_lat, initial_lon], draggable=True)
 marker.add_to(m)
 
-# Use st_folium to render the folium map in Streamlit
-output = st_folium(m, width=700)
+# Use st_folium to render the folium map in Streamlit sidebar
+with st.sidebar:
+    st.write("Select your destination on the map:")
+    output = st_folium(m, width=300, height=300)
 
 # Get the current marker position
-if output and 'last_clicked' in output:
+if output is not None and 'last_clicked' in output and output['last_clicked'] is not None:
     current_lat = output['last_clicked']['lat']
     current_lon = output['last_clicked']['lng']
 else:
@@ -67,13 +76,6 @@ for supplier_type in supplier_types:
 # If no specific type is selected, use the general max price
 if not supplier_types:
     st.sidebar.info("Select supplier types to set specific price limits")
-
-# --- Main section ---
-st.title("🧭 Espeeria Supplier Finder")
-st.markdown(
-    "Use the sidebar to search for hotels, restaurants, activities and transport "
-    "options around your selected destination."
-)
 
 # Create a container for search results
 results_container = st.container()
