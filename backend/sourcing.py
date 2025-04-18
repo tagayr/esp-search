@@ -169,9 +169,19 @@ def fetch_suppliers(lat, lon, radius_km, types, min_rating, max_price):
                                 "Rating": place["rating"],
                                 "Address": place.get("vicinity", ""),
                                 "Website": place.get("website", ""),
-                                "City": city
+                                "City": city,
+                                "Place ID": place["place_id"]
                             })
-    return results
+    
+    # Remove duplicates based on Place ID
+    seen_ids = set()
+    unique_results = []
+    for result in results:
+        if result["Place ID"] not in seen_ids:
+            seen_ids.add(result["Place ID"])
+            unique_results.append(result)
+    
+    return unique_results
 
 # 2. Web Scraping (Alternative approach)
 # - Scrape data from Google Maps, TripAdvisor, etc.

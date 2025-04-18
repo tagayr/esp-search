@@ -159,30 +159,30 @@ with st.sidebar:
     if not supplier_types:
         st.info("Select supplier types to set specific price limits")
 
-    # Search button
-    if st.button("Search"):
-        with st.spinner("Sourcing suppliers..."):
-            # Get current coordinates from session state
-            coords = sourcing.get_coordinates()
-            if coords:
-                lat, lon = coords
-                # This is where your backend sourcing logic would be called
-                suppliers = sourcing.fetch_suppliers(
-                    lat=lat,
-                    lon=lon,
-                    radius_km=radius_km,
-                    types=supplier_types,
-                    min_rating=min_google_rating,
-                    max_price=max_prices
-                )
-                
-                # Display results in the container below the title and description
-                if suppliers:
-                    df = pd.DataFrame(suppliers)
-                    st.success(f"Found {len(df)} suppliers!")
-                    st.dataframe(df)
-                else:
-                    st.warning("No results found for the given criteria.")
+# Search button
+if st.button("Search"):
+    with st.spinner("Sourcing suppliers..."):
+        # Get current coordinates from session state
+        coords = sourcing.get_coordinates()
+        if coords:
+            lat, lon = coords
+            # This is where your backend sourcing logic would be called
+            suppliers = sourcing.fetch_suppliers(
+                lat=lat,
+                lon=lon,
+                radius_km=radius_km,
+                types=supplier_types,
+                min_rating=min_google_rating,
+                max_price=max_prices
+            )
+            
+            # Display results in the container below the title and description
+            if suppliers:
+                df = pd.DataFrame(suppliers)
+                st.success(f"Found {len(df)} suppliers!")
+                st.dataframe(df)
             else:
-                st.error("No location selected. Please select a location on the map.")
+                st.warning("No results found for the given criteria.")
+        else:
+            st.error("No location selected. Please select a location on the map.")
 
