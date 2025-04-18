@@ -79,7 +79,13 @@ folium.Circle(
 # Render the map in the sidebar
 with st.sidebar:
     st.write("Select your destination on the map:")
-    output = st_folium(m, width=300, height=300, returned_objects=[])
+    output = st_folium(
+        m,
+        width=300,
+        height=300,
+        returned_objects=[],
+        key="map"  # Add a key to prevent map from resetting
+    )
 
 # Update location if map was clicked
 if output is not None and 'last_clicked' in output and output['last_clicked'] is not None:
@@ -87,6 +93,8 @@ if output is not None and 'last_clicked' in output and output['last_clicked'] is
     st.session_state.current_lon = output['last_clicked']['lng']
     # Preserve the zoom level
     st.session_state.zoom_level = output.get('zoom', st.session_state.zoom_level)
+    # Force a rerun to update the map
+    st.experimental_rerun()
 
 # Get the location name
 location = sourcing.get_location_name(st.session_state.current_lat, st.session_state.current_lon)
