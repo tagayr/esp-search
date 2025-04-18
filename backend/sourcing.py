@@ -4,6 +4,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+import streamlit as st
 
 # Load environment variables from .env file
 load_dotenv()
@@ -61,18 +62,16 @@ def get_coordinates_nominatim(location):
         print(f"Error getting coordinates: {str(e)}")
         return None
 
-def get_coordinates(lat, lon):
+def get_coordinates():
     """
-    Get coordinates from the user's map selection.
+    Get coordinates from the user's map selection using session state.
     
-    Args:
-        lat (float): Latitude from map selection
-        lon (float): Longitude from map selection
-        
     Returns:
         tuple: (latitude, longitude)
     """
-    return lat, lon
+    if 'current_lat' in st.session_state and 'current_lon' in st.session_state:
+        return st.session_state.current_lat, st.session_state.current_lon
+    return None
 
 def fetch_suppliers_dummy(location, radius_km, types, min_rating, max_price):
     """
@@ -135,8 +134,7 @@ def fetch_suppliers(lat, lon, radius_km, types, min_rating, max_price):
         for place_type in type_mapping[supplier_type]:
             url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
             params = {
-                # "location": get_coordinates(location),  # You'd need to implement this
-                "location": get_coordinates(lat, lon),
+                "location": f"{lat},{lon}",
                 "radius": radius_km * 1000,  # Convert to meters
                 "type": place_type,
                 "minprice": 0,
@@ -161,8 +159,7 @@ def fetch_suppliers(lat, lon, radius_km, types, min_rating, max_price):
                                 "Type": supplier_type,
                                 "Price (€)": estimated_price,
                                 "Rating": place["rating"],
-                                # "Location": location, # This needs to be changed to the location returned by GMaps
-                                "Location": place.get("location"),
+                                "Location": place.get("vicinity", ""),
                                 "Website": place.get("website", "")
                             })
     return results
