@@ -34,7 +34,7 @@ st.markdown(
 )
 
 # --- Main section ---
-st.title("🧭 Espeeria Supplier Finder")
+st.title("🧭 Espeeria Supplier Search")
 st.markdown(
     "Use the sidebar to search for hotels, restaurants, activities and transport "
     "options around your selected destination."
