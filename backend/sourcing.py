@@ -154,13 +154,22 @@ def fetch_suppliers(lat, lon, radius_km, types, min_rating, max_price):
                         estimated_price = price_level * 25  # Rough estimate
                         
                         if estimated_price <= max_price.get(supplier_type, 100):
+                            # Get location coordinates from place geometry
+                            location = place.get("geometry", {}).get("location", {})
+                            latitude = location.get("lat")
+                            longitude = location.get("lng")
+                            
+                            # Get city name using coordinates
+                            city = get_location_name(latitude, longitude)
+                            
                             results.append({
                                 "Name": place["name"],
                                 "Type": supplier_type,
                                 "Price (€)": estimated_price,
                                 "Rating": place["rating"],
-                                "Location": place.get("vicinity", ""),
-                                "Website": place.get("website", "")
+                                "Address": place.get("vicinity", ""),
+                                "Website": place.get("website", ""),
+                                "City": city
                             })
     return results
 
