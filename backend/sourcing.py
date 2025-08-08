@@ -144,6 +144,8 @@ def fetch_suppliers(lat, lon, radius_km, types, min_rating, max_price):
             
             response = requests.get(url, params=params)
             data = response.json()
+
+            print("DATA: ", data)
             
             if data["status"] == "OK":
                 for place in data["results"]:
